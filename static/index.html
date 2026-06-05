@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>朗言 AI</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- ── 顶部：阶段进度（极简） ── -->
+  <header class="top-bar">
+    <div class="app-name">朗言 AI</div>
+    <div class="stage-dots" id="stageDots">
+      <span class="dot active" data-stage="intro" title="自我介绍"></span>
+      <span class="dot-line"></span>
+      <span class="dot" data-stage="job_qa" title="岗位问答"></span>
+      <span class="dot-line"></span>
+      <span class="dot" data-stage="behavioral" title="行为面试"></span>
+      <span class="dot-line"></span>
+      <span class="dot" data-stage="candidate_qa" title="反问环节"></span>
+    </div>
+    <div class="stage-label-text" id="stageLabelText">自我介绍</div>
+    <button class="btn-end" id="btnEnd">结束</button>
+  </header>
+
+  <!-- ── 主舞台：AI 头像 + 说话动效 ── -->
+  <main class="call-stage">
+
+    <!-- 背景光晕 -->
+    <div class="bg-glow" id="bgGlow"></div>
+
+    <!-- AI 头像圆环 -->
+    <div class="avatar-wrap" id="avatarWrap">
+      <div class="ring ring-3"></div>
+      <div class="ring ring-2"></div>
+      <div class="ring ring-1"></div>
+      <div class="avatar-circle" id="avatarCircle">
+        <!-- AI 图标 -->
+        <svg class="avatar-icon" viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="24" r="12" stroke="currentColor" stroke-width="2.5"/>
+          <path d="M32 38 C18 38 10 46 10 54" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M32 38 C46 38 54 46 54 54" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- 声波竖线（说话时用 CSS 驱动） -->
+          <g class="wave-bars" id="waveBars">
+            <rect class="bar" x="23" y="20" width="2.5" height="8" rx="1.25"/>
+            <rect class="bar" x="27" y="17" width="2.5" height="14" rx="1.25"/>
+            <rect class="bar" x="31" y="15" width="2.5" height="18" rx="1.25"/>
+            <rect class="bar" x="35" y="17" width="2.5" height="14" rx="1.25"/>
+            <rect class="bar" x="39" y="20" width="2.5" height="8" rx="1.25"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- AI 状态文字 -->
+    <div class="ai-status" id="aiStatus">等待开始</div>
+
+    <!-- AI 当前说的话（字幕） -->
+    <div class="ai-caption" id="aiCaption"></div>
+
+    <!-- 用户说话实时字幕 -->
+    <div class="user-subtitle-wrap" id="userSubtitleWrap" style="display:none">
+      <span class="user-subtitle-dot"></span>
+      <span class="user-subtitle-text" id="userSubtitleText"></span>
+    </div>
+
+  </main>
+
+  <!-- ── 底部控制栏 ── -->
+  <footer class="call-controls">
+
+    <!-- 打断按钮 -->
+    <button class="ctrl-btn" id="btnInterrupt" disabled title="打断">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <rect x="6" y="5" width="4" height="14" rx="1"/>
+        <rect x="14" y="5" width="4" height="14" rx="1"/>
+      </svg>
+      <span>打断</span>
+    </button>
+
+    <!-- 主麦克风按钮 -->
+    <button class="mic-btn" id="btnMic">
+      <div class="mic-ring-outer"></div>
+      <div class="mic-ring-inner"></div>
+      <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+        <line x1="12" y1="19" x2="12" y2="23"/>
+        <line x1="8" y1="23" x2="16" y2="23"/>
+      </svg>
+    </button>
+
+    <!-- 纠错/提示历史 -->
+    <button class="ctrl-btn" id="btnHistory" title="纠错记录">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14,2 14,8 20,8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      <span>记录</span>
+    </button>
+
+  </footer>
+
+  <!-- ── 纠错弹窗 ── -->
+  <div class="correction-popup" id="correctionPopup" style="display:none">
+    <div class="corr-header">
+      <span>💡 表达建议</span>
+      <button id="corrClose">✕</button>
+    </div>
+    <div class="corr-body">
+      <div class="corr-row">
+        <span class="corr-badge badge-wrong">原始</span>
+        <span id="corrOriginal" class="corr-text"></span>
+      </div>
+      <div class="corr-row">
+        <span class="corr-badge badge-right">建议</span>
+        <span id="corrSuggestion" class="corr-text corr-highlight"></span>
+      </div>
+      <p class="corr-explain" id="corrExplanation"></p>
+    </div>
+  </div>
+
+  <!-- ── 纠错历史抽屉 ── -->
+  <div class="history-drawer" id="historyDrawer" style="display:none">
+    <div class="drawer-header">
+      <span>纠错记录</span>
+      <button id="drawerClose">✕</button>
+    </div>
+    <div class="drawer-list" id="drawerList">
+      <p class="drawer-empty">暂无纠错记录</p>
+    </div>
+  </div>
+  <div class="drawer-mask" id="drawerMask" style="display:none"></div>
+
+  <!-- ── 报告横幅（会话结束后） ── -->
+  <div class="report-banner" id="reportBanner" style="display:none">
+    <div class="report-banner-inner">
+      <span class="report-banner-icon">🎉</span>
+      <div>
+        <div class="report-banner-title">会话已完成</div>
+        <div class="report-banner-sub">已生成学习报告</div>
+      </div>
+      <a class="btn-report" id="btnReport" target="_blank">查看报告 →</a>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
