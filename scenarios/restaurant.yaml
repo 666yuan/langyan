@@ -1,0 +1,5 @@
+# TODO: 餐厅点餐场景 — 待 Task 04 之后实现
+scene_id: RESTAURANT
+scene_name: 餐厅点餐
+description: Practice ordering food and interacting with restaurant staff in English.
+status: TODO
